@@ -7,23 +7,25 @@ const char *vertexShaderSource {"#version 460 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+		"gl_Position = vec4(aPos, 1.0);\n" // see how we directly give a vec3 to vec4's constructor
 	"}\0"};
 
 
 const char *fragmentShaderSource1 {"#version 460 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-"}\0" }; 
+	"out vec4 FragColor;\n"
+	"in vec4 vertexColor;\n"
+	"void main()\n"
+	"{\n"
+	"	 FragColor = vertexColor;\n"
+	"}\0" }; 
 
 const char *fragmentShaderSource2 {"#version 460 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(1.0f, 0.1f, 0.7f, 0.5f);\n"
-"}\0" }; 
+	"out vec4 FragColor;\n"
+	"uniform vec4 myColor;\n"
+	"void main()\n"
+	"{\n"
+	"	 FragColor = myColor;\n"
+	"}\0" }; 
 
 Window::Window(const std::string name, const int width, const int height)
 	:
@@ -167,8 +169,13 @@ void Window::DoFrame()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float greenValue { (sin(static_cast<float>(glfwGetTime())) / 2.0f) + 0.5f };
+		float redValue { (sin(2.0f*static_cast<float>(glfwGetTime())) / 2.0f) + 0.5f };
+		int vertexColorLocation { glGetUniformLocation(shaderProgram, "myColor") };
+
 		// DRAW 
 		glUseProgram(shaderProgram);
+		glUniform4f(vertexColorLocation, redValue, greenValue, 0.0f, 1.0f);
 
 		for (int i {0}; i < VBOs.size(); ++i)
 		{
