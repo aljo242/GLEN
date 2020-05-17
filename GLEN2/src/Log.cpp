@@ -28,7 +28,7 @@ namespace GLEN {
 	}
 
 	std::shared_ptr<spdlog::logger> Log::SetupConsole()
-	{	
+	{
 		AllocConsole();
 
 		HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -45,6 +45,5 @@ namespace GLEN {
 
 		// Test spdlog
 		return Init_spdlog();
-		
 	}
 }

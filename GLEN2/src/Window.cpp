@@ -1,31 +1,19 @@
 #include "GLEN_PCH.h"
 #include "Window.h"
+#include "Shader.h"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 
 using namespace GLEN;
 
-const char *vertexShaderSource {"#version 460 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-		"gl_Position = vec4(aPos, 1.0);\n" // see how we directly give a vec3 to vec4's constructor
-	"}\0"};
-
-
-const char *fragmentShaderSource1 {"#version 460 core\n"
-	"out vec4 FragColor;\n"
-	"in vec4 vertexColor;\n"
-	"void main()\n"
-	"{\n"
-	"	 FragColor = vertexColor;\n"
-	"}\0" }; 
-
-const char *fragmentShaderSource2 {"#version 460 core\n"
-	"out vec4 FragColor;\n"
-	"uniform vec4 myColor;\n"
-	"void main()\n"
-	"{\n"
-	"	 FragColor = myColor;\n"
-	"}\0" }; 
+constexpr char shaderPath[]{ "shader\\" };
+float mixValue {0.0f};
 
 Window::Window(const std::string name, const int width, const int height)
 	:
@@ -59,154 +47,206 @@ Window::Window(const std::string name, const int width, const int height)
 
 void Window::DoFrame()
 {
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	Shader ourShader("shader\\vshader.glsl", "shader\\fshader.glsl");
 
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
+	// set up vertex data (and buffer(s)) and configure vertex attributes
+// ------------------------------------------------------------------
+	std::vector<float> triangle{
+		// positions          // colors           // texture coords
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
+	};
 
-	int success {0};
-	constexpr int logSize {512};
-	char infoLog[logSize];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, logSize, NULL, infoLog);
-		GLEN_ERROR("ERROR::SHADER::VERTEX::COMPILATION::FAILED\n");
-		GLEN_ERROR(infoLog);
-	}
-
-	std::vector<unsigned int> fragmentShaders(2);
-	int counter {0};
-	for (auto& shader : fragmentShaders)
-	{
-		shader = glCreateShader(GL_FRAGMENT_SHADER);
-		
-		glShaderSource(shader, 1, &fragmentShaderSource2, NULL);
-		if (counter == 1)
-		{
-			glShaderSource(shader, 1, &fragmentShaderSource1, NULL);
-		}
-		glCompileShader(shader);
-
-		glGetProgramiv(shader, GL_LINK_STATUS, &success);
-		if (!success)
-		{
-			glGetProgramInfoLog(shader, logSize, NULL, infoLog);
-			GLEN_ERROR("ERROR::SHADER::FRAGMENT::COMPILATION::FAILED\n");
-			GLEN_ERROR(infoLog);
-		}
-	}
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShaders[1]);
-	glLinkProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(shaderProgram, logSize, NULL, infoLog);
-		GLEN_ERROR("ERROR::SHADER::PROGRAM::CREATION::FAILED\n");
-		GLEN_ERROR(infoLog);
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShaders[1]);  
-
-	    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    std::vector<float> triangle  {
-        -0.9f, -0.5f, 0.0f,  // left 
-        -0.0f, -0.5f, 0.0f,  // right
-        -0.45f, 0.5f, 0.0f,  // top 
-
-         0.0f, -0.5f, 0.0f,  // left
-         0.9f, -0.5f, 0.0f,  // right
-         0.45f, 0.5f, 0.0f   // top 
-    };
+	std::vector<unsigned int> indices{
+		0, 1, 3,
+		1, 2, 3
+	};
 
 	// set up vertices
 	// refactor to std::vector<float>
 	/*
-    float vertices[] = {
-         0.9f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.9f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left 
-    };
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,  // first Triangle
-        1, 2, 3   // second Triangle
-    };
+	float vertices[] = {
+		 0.9f,  0.5f, 0.0f,  // top right
+		 0.5f, -0.5f, 0.0f,  // bottom right
+		-0.5f, -0.9f, 0.0f,  // bottom left
+		-0.5f,  0.5f, 0.0f   // top left
+	};
+	unsigned int indices[] = {  // note that we start from 0!
+		0, 1, 3,  // first Triangle
+		1, 2, 3   // second Triangle
+	};
 	*/
-	std::vector<unsigned int> VBOs(2);
-	std::vector<unsigned int> VAOs(2);
-	constexpr int triangleSize {9};
+	std::vector<unsigned int> VBOs(1);
+	std::vector<unsigned int> VAOs(1);
+	std::vector<unsigned int> EBOs(1);
+	constexpr int triangleSize{ 9 };
 
-	glGenVertexArrays(VAOs.size(), VAOs.data());
-	glGenBuffers(VBOs.size(), VBOs.data());
+	glGenVertexArrays(static_cast<int>(VAOs.size()), VAOs.data());
+	glGenBuffers(static_cast<int>(VBOs.size()), VBOs.data());
+	glGenBuffers(static_cast<int>(EBOs.size()), EBOs.data());
 
-	for (int i {0}; i < VBOs.size(); ++i)
+	for (int i{ 0 }; i < VBOs.size(); ++i)
 	{
 		glBindVertexArray(VAOs[i]);
+
 		glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
-		glBufferData(GL_ARRAY_BUFFER, triangleSize * sizeof(float), triangle.data() + i*triangleSize , GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glBufferData(GL_ARRAY_BUFFER, static_cast<int>(triangle.size() * sizeof(float)), triangle.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int>(indices.size() * sizeof(unsigned int)), indices.data(), GL_STATIC_DRAW);
+		// pos
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
 		glEnableVertexAttribArray(0);
+		// color
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+		// texcoord
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
 	}
+
+	//std::vector<float> borderColor { 1.0f, 1.0f, 0.0f, 1.0f };
+	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor.data());
+
+	// load some texture
+	unsigned int texture1{ 0 };
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // tex coord are s, t, r
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // map to:       x, y, z
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // tex coord are s, t, r
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // map to:       x, y, z
+
+	stbi_set_flip_vertically_on_load(true);
+
+	int width{ 0 };
+	int height{ 0 };
+	int nrChannels{ 0 };
+	std::filesystem::path path{ "res\\tex\\container.jpg" };
+	unsigned char* data{ stbi_load(path.string().c_str(), &width, &height, &nrChannels, 0) };
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		GLEN_CRITICAL("ERROR::TEXTURE::FAILED_LOAD");
+	}
+	stbi_image_free(data);
+
+	unsigned int texture2{ 0 };
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT ); // tex coord are s, t, r
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // map to:       x, y, z
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // tex coord are s, t, r
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // map to:       x, y, z
+
+	stbi_set_flip_vertically_on_load(true);
+
+	path = "res\\tex\\awesomeface.png";
+	data = stbi_load(path.string().c_str(), &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		GLEN_CRITICAL("ERROR::TEXTURE::FAILED_LOAD");
+	}
+	stbi_image_free(data);
 
 	// wireframe render
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+	ourShader.use();
+	glUniform1i(glGetUniformLocation(ourShader.GetID(), "texture1"), 0);
+	ourShader.setInt("texture2", 1);
+
+
 	// rendering loop
-	while(!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window))
 	{
 		processInput();
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		float xValue{ (sin(static_cast<float>(glfwGetTime())) / 2.0f) };
+		float yValue{ (sin(2.0f * static_cast<float>(glfwGetTime())) / 2.0f) };
+		float zValue{ (sin(0.5f * static_cast<float>(glfwGetTime())) / 2.0f) };
 
-		float greenValue { (sin(static_cast<float>(glfwGetTime())) / 2.0f) + 0.5f };
-		float redValue { (sin(2.0f*static_cast<float>(glfwGetTime())) / 2.0f) + 0.5f };
-		int vertexColorLocation { glGetUniformLocation(shaderProgram, "myColor") };
+        glClearColor(xValue + 0.5f, 0.3f, zValue + 0.5f, yValue + 0.5f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-		// DRAW 
-		glUseProgram(shaderProgram);
-		glUniform4f(vertexColorLocation, redValue, greenValue, 0.0f, 1.0f);
+		ourShader.use();
+		int transformLoc {glGetUniformLocation(ourShader.GetID(), "transform")};
+		int toggleLocation{ glGetUniformLocation(ourShader.GetID(), "toggle") };
 
-		for (int i {0}; i < VBOs.size(); ++i)
-		{
-			glBindVertexArray(VAOs[i]);
-			glDrawArrays(GL_TRIANGLES, 0, 3);
-		}
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// DRAW
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+		glProgramUniform1f(ourShader.GetID(), toggleLocation, mixValue);
 
-		glfwPollEvents();
+
+
+		//for (auto& VAO : VAOs)
+		//{
+		//	glBindVertexArray(VAO);
+		//	glDrawArrays(GL_TRIANGLES, 0, 3);
+		//}
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		glBindVertexArray(VAOs[0]);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 		glfwSwapBuffers(window);
+		glfwPollEvents();
+
 	}
 
 	// de-allocate all resources when done
-	glDeleteVertexArrays(2, VAOs.data());
+	glDeleteVertexArrays(1, VAOs.data());
 	glDeleteBuffers(1, VBOs.data());
-	//glDeleteBuffers(1, &EBO);
-	glDeleteProgram(shaderProgram);
+	glDeleteBuffers(1, EBOs.data());
 }
 
 void Window::processInput()
 {
-	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
-}
 
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		mixValue += 0.001f;
+		if(mixValue >= 1.0f)
+		{	
+			mixValue = 1.0f;
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		mixValue -= 0.001f;
+		if(mixValue <= 0.0f)
+		{	
+			mixValue = 0.0f;
+		}
+	}
+}
 
 void GLEN::frame_buffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
-		glViewport(0, 0, width, height);
+	glViewport(0, 0, width, height);
 }

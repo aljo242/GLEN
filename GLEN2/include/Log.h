@@ -11,7 +11,7 @@ namespace GLEN
 			m_Logger = SetupConsole();
 		}
 
-	private:	
+	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
 		std::shared_ptr<spdlog::logger> Init_spdlog();
 		std::shared_ptr<spdlog::logger> SetupConsole();
