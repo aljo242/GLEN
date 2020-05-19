@@ -17,5 +17,7 @@ namespace GLEN
 		GLFWwindow* window;
 		void processInput();
 		std::string m_name;
+		int m_width;
+		int m_height;
 	};
 }
