@@ -1,6 +1,6 @@
 #pragma once
 
-namespace GLEN 
+namespace GLEN
 {
 	constexpr int GLlogSize{ 512 };
 }

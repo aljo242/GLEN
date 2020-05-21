@@ -58,13 +58,6 @@ void Window::DoFrame()
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
-	std::vector<float> triangle{
-		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
-	};
 
 	float vertices[]{
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -122,11 +115,6 @@ void Window::DoFrame()
 		glm::vec3(1.5f,  2.0f, -2.5f),
 		glm::vec3(1.5f,  0.2f, -1.5f),
 		glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
-
-	std::vector<unsigned int> indices{
-		0, 1, 3,
-		1, 2, 3
 	};
 
 	unsigned int VAO, VBO;
