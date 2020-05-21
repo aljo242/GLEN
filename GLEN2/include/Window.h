@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GLEN_PCH.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "Log.h"
 
 namespace GLEN

@@ -1,6 +1,8 @@
 #pragma once
 
-#include "GLEN_PCH.h"
+#include <memory>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace GLEN
 {

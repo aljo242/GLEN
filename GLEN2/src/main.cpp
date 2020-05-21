@@ -1,4 +1,3 @@
-#include "GLEN_PCH.h"
 #include "Log.h"
 #include "Window.h"
 #include <glad/glad.h>

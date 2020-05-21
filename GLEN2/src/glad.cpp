@@ -18,7 +18,6 @@
 	Online:
 		https://glad.dav1d.de/#profile=core&language=c&specification=gl&loader=on&api=gl%3D4.6
 */
-#include "GLEN_PCH.h"
 
 #include <stdio.h>
 #include <stdlib.h>
