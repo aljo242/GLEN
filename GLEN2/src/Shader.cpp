@@ -8,20 +8,6 @@
 
 #include "Defines.h"
 
-/*
-notes
-
-change animation to focus on existing kernel
-utilizing -> FEATURING
-
-"exp
-
-swap 2nd bullet on "Develop" to platforms
-"investigate new hardware and software platforms"
-"study" acceleration of various app domains
-
-*/
-
 using namespace GLEN;
 
 Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
@@ -115,9 +101,14 @@ Shader::~Shader()
 	glDeleteProgram(ID);
 }
 
-void Shader::use()
+void Shader::Bind()
 {
 	glUseProgram(ID);
+}
+
+void Shader::Unbind()
+{
+	glUseProgram(0);
 }
 
 void Shader::setBool(const std::string& name, const bool value) const
@@ -140,7 +131,7 @@ void Shader::setVec2(const std::string& name, const glm::vec2& value) const
 	glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
 }
 
-void Shader::setVec2(const std::string& name, float x, float y) const
+void Shader::setVec2(const std::string& name, const float x, const float y) const
 {
 	glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
 }

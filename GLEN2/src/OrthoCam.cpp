@@ -3,7 +3,6 @@
 
 #include "glm/gtc/matrix_transform.hpp"
 
-
 using namespace GLEN;
 
 OrthoCam::OrthoCam(const float left, const float right, const float bottom, const float top)
@@ -15,7 +14,6 @@ OrthoCam::OrthoCam(const float left, const float right, const float bottom, cons
 {
 	m_ViewProj = m_View * m_Proj;
 }
-
 
 OrthoCam::OrthoCam(const glm::vec4 orientation)
 	:
@@ -41,10 +39,10 @@ void GLEN::OrthoCam::SetProj(const glm::vec4 orientation)
 
 void GLEN::OrthoCam::RecalculateView()
 {
-	glm::mat4 transform {
+	glm::mat4 transform{
 		glm::translate(glm::mat4(1.0f), m_Position) *
 		glm::rotate(glm::mat4(1.0f), glm::radians(m_Rotation), glm::vec3(0, 0, 1))
-		};
+	};
 
 	m_View = glm::inverse(transform);
 	m_ViewProj = m_Proj * m_View;

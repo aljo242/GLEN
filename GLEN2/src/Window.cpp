@@ -4,9 +4,7 @@
 #include "Shader.h"
 #include "glDebug.h"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+
 
 #include "Defines.h"
 
@@ -23,7 +21,10 @@ Window::Window(const std::string name, const int width, const int height)
 	window(nullptr),
 	m_name(name),
 	m_width(width),
-	m_height(height)
+	m_height(height),
+	cameraPos(glm::vec3(0.0f, 0.0f, 3.0f)),
+	cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)),
+	cameraUp(glm::vec3(0.0f, 1.0f, 0.0f))
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -201,14 +202,28 @@ void Window::DoFrame()
 	// wireframe render
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	ourShader.use();
+	ourShader.Bind();
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 
 	glm::mat4 model{ glm::mat4(1.0f) };
 	//model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::mat4 view{ glm::mat4(1.0f) };
+	//glm::mat4 view{ glm::mat4(1.0f) };
 	glm::mat4 projection{ glm::perspective(glm::radians(70.0f), static_cast<float>(m_width / m_height), 0.1f, 100.0f) };
+
+	//glm::vec3 cameraPos						{ glm::vec3(0.0f, 0.0f, 3.0f) };
+	//constexpr glm::vec3 cameraTarget		{ glm::vec3(0.0f, 0.0f, 0.0f) };
+	//const glm::vec3 cameraDirection			{ glm::normalize(cameraPos - cameraTarget)};
+	//constexpr glm::vec3 up					{ glm::vec3(0.0f, 1.0f, 0.0f) };
+	//const glm::vec3 cameraRight				{ glm::normalize(glm::cross(up, cameraDirection)) };
+	//const glm::vec3 cameraUp				{ glm::cross(cameraDirection, cameraUp) };
+
+	glm::mat4 view{ glm::lookAt(cameraPos,
+								cameraPos + cameraFront,
+								cameraUp)
+	};
+
+	constexpr float radius{ 10.0f };
 
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
@@ -223,9 +238,14 @@ void Window::DoFrame()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ourShader.use();
-		view = glm::mat4(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		float camX = std::sin(glfwGetTime()) * radius;
+		float camY = std::cos(glfwGetTime()) * radius;
+		//cameraPos = glm::vec3(camX, 0.0f, camY);
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+		ourShader.Bind();
+		//view = glm::mat4(1.0f);
+		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(m_width / m_height), 0.1f, 100.0f);
 		// DRAW
 		ourShader.setMat4("view", view);
@@ -287,6 +307,30 @@ void Window::processInput()
 		{
 			mixValue = 0.0f;
 		}
+	}
+
+	float currentFrame	{static_cast<float>(glfwGetTime())};
+	deltaTime			= currentFrame - lastFrame;
+	lastFrame			= currentFrame;
+	float cameraSpeed {2.5f * deltaTime};
+	
+
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		cameraPos += cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		cameraPos -= cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	}
 }
 
