@@ -1,4 +1,5 @@
 #include "BasicCam.h"
+#include "Log.h"
 
 using namespace GLEN;
 
@@ -13,6 +14,7 @@ BasicCam::BasicCam(glm::vec3 position)
 	{
 		Position = position;
 		WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+		WorldRight = glm::vec3(1.0f, 0.0f, 0.0f);
 		updateCameraVectors();
 	}
 
@@ -48,7 +50,10 @@ void BasicCam::ProcessKeyboard(CameraMovement direction, const float deltaTime)
 	case CameraMovement::LEFT:
 		Position -= Right * velocity;
 		break;
-
+	}
+	if (fps)
+	{
+		Position.y = 0.0f;
 	}
 }
 

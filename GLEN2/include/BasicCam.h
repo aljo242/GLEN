@@ -30,19 +30,30 @@ namespace GLEN
 	public:
 		BasicCam(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f));
 
-
-		glm::mat4 GetViewMatrix() {return glm::lookAt(Position, Position + Front, Up);}
+		inline void ToggleFPS(const bool state) {fps = state;}
+		glm::mat4 GetViewMatrix() const {return glm::lookAt(Position, Position + Front, Up);} 
 
 		void ProcessKeyboard(CameraMovement direction, const float deltaTime);
 		void ProcessMouseMovement(const float xOffset, const float yOffset, const GLboolean constrainPitch = true);
 		void ProcessMouseScroll(const float yOffset);
 
 		
+
+
+
+
+	private:
+		void updateCameraVectors();
+
 		glm::vec3 Position;
 		glm::vec3 Front;
 		glm::vec3 Up; 
 		glm::vec3 Right;
 		glm::vec3 WorldUp;
+		glm::vec3 WorldRight;
+
+
+		bool fps {false};
 
 		float Yaw   {CamConstants::yaw};
 		float Pitch {CamConstants::pitch};
@@ -53,10 +64,5 @@ namespace GLEN
 		float MovementSpeed;
 		float MouseSensitivity;
 		float Zoom;
-
-
-	private:
-
-		void updateCameraVectors();
 	};
 }

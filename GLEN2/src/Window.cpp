@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Shader.h"
 #include "glDebug.h"
+#include "Timer.h"
 
 
 
@@ -22,10 +23,8 @@ Window::Window(const std::string name, const int width, const int height)
 	m_name{name},
 	m_width{width},
 	m_height{height},
-	cameraPos{glm::vec3(0.0f, 0.0f, 3.0f)},
-	cameraFront{glm::vec3(0.0f, 0.0f, -1.0f)},
-	cameraUp{glm::vec3(0.0f, 1.0f, 0.0f)},
-	camera{glm::vec3(0.0f, 0.0f, 3.0f)}
+	camera{glm::vec3(0.0f, 0.0f, 3.0f)},
+	m_timer()
 {
 
 	glfwInit();
@@ -222,16 +221,17 @@ void Window::DoFrame()
 	//const glm::vec3 cameraRight				{ glm::normalize(glm::cross(up, cameraDirection)) };
 	//const glm::vec3 cameraUp				{ glm::cross(cameraDirection, cameraUp) };
 
-	glm::mat4 view{ glm::lookAt(cameraPos,
-								cameraPos + cameraFront,
-								cameraUp)
-	};
+	glm::mat4 view{camera.GetViewMatrix()};
 
 	constexpr float radius{ 10.0f };
+	constexpr bool trackFPS {true};
 
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
+		m_timer.update(trackFPS);
+
+
 		processInput();
 
 		glActiveTexture(GL_TEXTURE0);
@@ -289,9 +289,6 @@ void Window::DoFrame()
 
 void Window::processInput()
 {
-	float currentFrame	{static_cast<float>(glfwGetTime())};
-	deltaTime			= currentFrame - lastFrame;
-	lastFrame			= currentFrame;
 
 	// probe for keys
 	processKeys();
@@ -300,10 +297,6 @@ void Window::processInput()
 	processMouse();
 }
 
-void GLEN::frame_buffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
 
 void GLEN::Window::processMouse()
 {
@@ -322,30 +315,30 @@ void GLEN::Window::processMouse()
 
 void GLEN::Window::processKeys()
 {
+	
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
 
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		camera.ProcessKeyboard(CameraMovement::FORWARD, deltaTime);
+		camera.ProcessKeyboard(CameraMovement::FORWARD, m_timer.getDelta());
 	}
+
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		camera.ProcessKeyboard(CameraMovement::BACKWARD, deltaTime);
+		camera.ProcessKeyboard(CameraMovement::BACKWARD, m_timer.getDelta());
 
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		camera.ProcessKeyboard(CameraMovement::LEFT, deltaTime);
+		camera.ProcessKeyboard(CameraMovement::LEFT, m_timer.getDelta());
 
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		camera.ProcessKeyboard(CameraMovement::RIGHT, deltaTime);
-
+		camera.ProcessKeyboard(CameraMovement::RIGHT, m_timer.getDelta());
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -364,4 +357,9 @@ void GLEN::Window::processKeys()
 			mixValue = 0.0f;
 		}
 	}
+}
+
+void GLEN::frame_buffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
 }
