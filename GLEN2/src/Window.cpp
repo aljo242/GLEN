@@ -18,20 +18,23 @@ float mixValue{ 0.0f };
 
 Window::Window(const std::string name, const int width, const int height)
 	:
-	window(nullptr),
-	m_name(name),
-	m_width(width),
-	m_height(height),
-	cameraPos(glm::vec3(0.0f, 0.0f, 3.0f)),
-	cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)),
-	cameraUp(glm::vec3(0.0f, 1.0f, 0.0f))
+	window{nullptr},
+	m_name{name},
+	m_width{width},
+	m_height{height},
+	cameraPos{glm::vec3(0.0f, 0.0f, 3.0f)},
+	cameraFront{glm::vec3(0.0f, 0.0f, -1.0f)},
+	cameraUp{glm::vec3(0.0f, 1.0f, 0.0f)},
+	camera{glm::vec3(0.0f, 0.0f, 3.0f)}
 {
+
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
+
 	// TODO
 	// add exception throw
 	if (window == nullptr)
@@ -42,6 +45,7 @@ Window::Window(const std::string name, const int width, const int height)
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, frame_buffer_size_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// TODO
 	// add exception throw
@@ -239,9 +243,9 @@ void Window::DoFrame()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		float camX = std::sin(glfwGetTime()) * radius;
-		float camY = std::cos(glfwGetTime()) * radius;
+		float camY = std::cos(.002 * glfwGetTime()) * radius;
 		//cameraPos = glm::vec3(camX, 0.0f, camY);
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		view = camera.GetViewMatrix();
 
 		ourShader.Bind();
 		//view = glm::mat4(1.0f);
@@ -252,11 +256,9 @@ void Window::DoFrame()
 		ourShader.setMat4("projection", projection);
 		ourShader.setFloat("toggle", mixValue);
 
-		//for (auto& VAO : VAOs)
-		//{
-		//	glBindVertexArray(VAO);
-		//	glDrawArrays(GL_TRIANGLES, 0, 3);
-		//}
+		ourShader.setFloat("camX", camX);
+		ourShader.setFloat("camY", camY);
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
@@ -287,9 +289,63 @@ void Window::DoFrame()
 
 void Window::processInput()
 {
+	float currentFrame	{static_cast<float>(glfwGetTime())};
+	deltaTime			= currentFrame - lastFrame;
+	lastFrame			= currentFrame;
+
+	// probe for keys
+	processKeys();
+
+	// get cursor pos
+	processMouse();
+}
+
+void GLEN::frame_buffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+void GLEN::Window::processMouse()
+{
+	double xpos{0.0};
+	double ypos{0.0};
+	glfwGetCursorPos(window, &xpos, &ypos);
+
+	float xOffset {static_cast<float>(xpos) - lastX};
+	float yOffset {static_cast<float>(ypos) - lastY};
+	lastX = xpos;
+	lastY = ypos;
+	
+	constexpr GLboolean constrainPitch {true};
+	camera.ProcessMouseMovement(xOffset, yOffset, constrainPitch);
+}
+
+void GLEN::Window::processKeys()
+{
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		camera.ProcessKeyboard(CameraMovement::FORWARD, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		camera.ProcessKeyboard(CameraMovement::BACKWARD, deltaTime);
+
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		camera.ProcessKeyboard(CameraMovement::LEFT, deltaTime);
+
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		camera.ProcessKeyboard(CameraMovement::RIGHT, deltaTime);
+
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -308,33 +364,4 @@ void Window::processInput()
 			mixValue = 0.0f;
 		}
 	}
-
-	float currentFrame	{static_cast<float>(glfwGetTime())};
-	deltaTime			= currentFrame - lastFrame;
-	lastFrame			= currentFrame;
-	float cameraSpeed {2.5f * deltaTime};
-	
-
-
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		cameraPos += cameraSpeed * cameraFront;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		cameraPos -= cameraSpeed * cameraFront;
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	}
-}
-
-void GLEN::frame_buffer_size_callback(GLFWwindow* window, const int width, const int height)
-{
-	glViewport(0, 0, width, height);
 }
