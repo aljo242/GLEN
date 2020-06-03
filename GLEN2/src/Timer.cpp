@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Timer.h"
+#include "Log.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 
 using namespace GLEN;
 
@@ -16,7 +18,14 @@ void Timer::update(const bool trackFPS) noexcept
 	{
 		fpsCounter = (currentTime - lastWindow) / static_cast<float>(frameCount);
 		lastWindow = currentTime;
-	}
+		frameCount = 0;
+		logFPS();
+	} 
 
 	++frameCount;
+}
+
+void Timer::logFPS() const noexcept
+{
+	GLEN_CRITICAL("FPS: {}", 1.0f/(fpsCounter));
 }

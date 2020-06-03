@@ -1,13 +1,12 @@
 #include <filesystem>
 
 #include "Window.h"
-#include "Shader.h"
 #include "glDebug.h"
 #include "Timer.h"
+#include "Buffers.h"
+#include "Shader.h"
 
 
-
-#include "Defines.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -25,8 +24,8 @@ Window::Window(const std::string name, const int width, const int height)
 	m_height{height},
 	camera{glm::vec3(0.0f, 0.0f, 3.0f)},
 	m_timer()
-{
 
+{
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -63,7 +62,7 @@ void Window::DoFrame()
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 
-	float vertices[]{
+	std::vector<GLfloat> vertices{
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
 	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -121,32 +120,14 @@ void Window::DoFrame()
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	unsigned int VAO, VBO;
-	//std::vector<unsigned int> EBOs(1);
-	constexpr int triangleSize{ 9 };
+	std::vector<GLint> bufferList {3, 2};
 
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	//glGenBuffers(static_cast<int>(EBOs.size()), EBOs.data());
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int>(indices.size() * sizeof(unsigned int)), indices.data(), GL_STATIC_DRAW);
-	// pos
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0));
-	glEnableVertexAttribArray(0);
-	// color
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	// texcoord
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	//std::vector<float> borderColor { 1.0f, 1.0f, 0.0f, 1.0f };
-	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor.data());
+	VertexBuffer<GLfloat, GL_FLOAT> vBuffer2(bufferList, vertices);
+	vBuffer2.GenArrays(1);
+	vBuffer2.GenBuffers(1);
+	vBuffer2.Bind();
+	vBuffer2.BufferStatic();
+	vBuffer2.PushVert(0); vBuffer2.PushVert(1); 
 
 	// load some texture
 	unsigned int texture1{ 0 };
@@ -224,13 +205,12 @@ void Window::DoFrame()
 	glm::mat4 view{camera.GetViewMatrix()};
 
 	constexpr float radius{ 10.0f };
-	constexpr bool trackFPS {true};
+	constexpr bool trackFPS {false};
 
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
 		m_timer.update(trackFPS);
-
 
 		processInput();
 
@@ -264,7 +244,7 @@ void Window::DoFrame()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		glBindVertexArray(VAO);
+		vBuffer2.BindArray();
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			// calculate the model matrix for each object and pass it to shader before drawing
@@ -273,7 +253,7 @@ void Window::DoFrame()
 			float angle{ 20.0f * i * static_cast<float>(glfwGetTime()) };
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			ourShader.setMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawArrays(GL_TRIANGLES, 0,  36);
 		}
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -282,8 +262,7 @@ void Window::DoFrame()
 	}
 
 	// de-allocate all resources when done
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+
 	//glDeleteBuffers(1, EBOs.data());
 }
 
@@ -304,8 +283,8 @@ void GLEN::Window::processMouse()
 	double ypos{0.0};
 	glfwGetCursorPos(window, &xpos, &ypos);
 
-	float xOffset {static_cast<float>(xpos) - lastX};
-	float yOffset {static_cast<float>(ypos) - lastY};
+	const float xOffset {static_cast<float>(xpos) - lastX};
+	const float yOffset {static_cast<float>(ypos) - lastY};
 	lastX = xpos;
 	lastY = ypos;
 	
@@ -315,7 +294,6 @@ void GLEN::Window::processMouse()
 
 void GLEN::Window::processKeys()
 {
-	
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);

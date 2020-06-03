@@ -6,34 +6,35 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-namespace GLEN
+namespace GLEN{
+
+class Shader
 {
-	class Shader
-	{
-	public:
-		Shader(const std::string& vertexPath, const std::string& fragmentPath);
-		~Shader();
+public:
+	Shader(const std::string& vertexPath, const std::string& fragmentPath);
+	~Shader();
 
-		unsigned int GetID() const noexcept { return ID; }
-		// use/activate the shader
-		void Bind();
-		void Unbind();
+	unsigned int GetID() const noexcept { return ID; }
+	// use/activate the shader
+	void Bind();
+	void Unbind();
 
-		// utility uniform functions
-		void setBool(const std::string& name, const bool value) const;
-		void setInt(const std::string& name, const int value) const;
-		void setFloat(const std::string& name, const float value) const;
-		void setVec2(const std::string& name, const glm::vec2& value) const;
-		void setVec2(const std::string& name, const float x, const float y) const;
-		void setVec3(const std::string& name, const glm::vec3& value) const;
-		void setVec3(const std::string& name, const float x, const float y, const float z) const;
-		void setVec4(const std::string& name, const glm::vec4& value) const;
-		void setVec4(const std::string& name, const float x, const float y, const float z, const float w) const;
-		void setMat2(const std::string& name, const glm::mat2& mat) const;
-		void setMat3(const std::string& name, const glm::mat3& mat) const;
-		void setMat4(const std::string& name, const glm::mat4& mat) const;
+	// utility uniform functions
+	void setBool(const std::string& name, const bool value) const;
+	void setInt(const std::string& name, const int value) const;
+	void setFloat(const std::string& name, const float value) const;
+	void setVec2(const std::string& name, const glm::vec2& value) const;
+	void setVec2(const std::string& name, const float x, const float y) const;
+	void setVec3(const std::string& name, const glm::vec3& value) const;
+	void setVec3(const std::string& name, const float x, const float y, const float z) const;
+	void setVec4(const std::string& name, const glm::vec4& value) const;
+	void setVec4(const std::string& name, const float x, const float y, const float z, const float w) const;
+	void setMat2(const std::string& name, const glm::mat2& mat) const;
+	void setMat3(const std::string& name, const glm::mat3& mat) const;
+	void setMat4(const std::string& name, const glm::mat4& mat) const;
 
-	private:
-		unsigned int  ID;
-	};
-}
+private:
+	unsigned int  ID;
+};
+
+} // namespace GLEN

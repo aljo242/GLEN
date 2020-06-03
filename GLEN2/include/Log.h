@@ -4,21 +4,21 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-namespace GLEN
-{
-	class Log {
-	public:
-		Log()
-		{
-			m_Logger = SetupConsole();
-		}
+namespace GLEN {
 
-	private:
-		std::shared_ptr<spdlog::logger> m_Logger;
-		std::shared_ptr<spdlog::logger> Init_spdlog();
-		std::shared_ptr<spdlog::logger> SetupConsole();
+class Log {
+public:
+	Log()
+	{
+		m_Logger = SetupConsole();
+	}
+
+private:
+	std::shared_ptr<spdlog::logger> m_Logger;
+	std::shared_ptr<spdlog::logger> Init_spdlog();
+	std::shared_ptr<spdlog::logger> SetupConsole();
 	};
-}
+} // namespace GLEN
 
 // USE MACROS to expand logger
 
