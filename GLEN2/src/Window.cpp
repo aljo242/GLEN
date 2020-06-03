@@ -5,8 +5,7 @@
 #include "Timer.h"
 #include "Buffers.h"
 #include "Shader.h"
-
-
+#include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -61,7 +60,7 @@ void Window::DoFrame()
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
-
+	
 	std::vector<GLfloat> vertices{
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -105,6 +104,7 @@ void Window::DoFrame()
 	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
+	
 
 	// world space positions of our cubes
 	glm::vec3 cubePositions[] = {
@@ -122,42 +122,22 @@ void Window::DoFrame()
 
 	std::vector<GLint> bufferList {3, 2};
 
-	VertexBuffer<GLfloat, GL_FLOAT> vBuffer2(bufferList, vertices);
+	VertexBuffer<GLfloat> vBuffer2(bufferList, vertices);
 	vBuffer2.GenArrays(1);
 	vBuffer2.GenBuffers(1);
 	vBuffer2.Bind();
 	vBuffer2.BufferStatic();
 	vBuffer2.PushVert(0); vBuffer2.PushVert(1); 
 
-	// load some texture
-	unsigned int texture1{ 0 };
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // tex coord are s, t, r
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // map to:       x, y, z
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // tex coord are s, t, r
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // map to:       x, y, z
-
 	stbi_set_flip_vertically_on_load(true);
-
-	int width{ 0 };
-	int height{ 0 };
-	int nrChannels{ 0 };
 	std::filesystem::path path{ "res\\tex\\container.jpg" };
-	unsigned char* data{ stbi_load(path.string().c_str(), &width, &height, &nrChannels, 0) };
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		GLEN_CRITICAL("ERROR::TEXTURE::FAILED_LOAD");
-	}
-	stbi_image_free(data);
 
+
+	Texture tex1(path);
+
+
+	int width; int height; int nrChannels;
+	unsigned char* data;
 	unsigned int texture2{ 0 };
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
@@ -214,11 +194,6 @@ void Window::DoFrame()
 
 		processInput();
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
-
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -240,7 +215,7 @@ void Window::DoFrame()
 		ourShader.setFloat("camY", camY);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+		glBindTexture(GL_TEXTURE_2D, tex1.GetID());
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 

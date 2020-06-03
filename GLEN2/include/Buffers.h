@@ -55,9 +55,9 @@ private:
 	std::vector<dataType> buffer;
 	GLuint VBO;
 	GLuint VAO;
-	GLsizei numVBOs;
-	GLsizei numVAOs;
-};
+	GLsizei numVBOs {0};
+	GLsizei numVAOs {0};
+}; // VertexBuffer
 
 
 } // namespace GLEN
