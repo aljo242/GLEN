@@ -40,15 +40,16 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
 	catch (std::ifstream::failure& e)
 	{
 		GLEN_CRITICAL("ERROR::SHADER::FILE::NOT::SUCCESSFULLY::READ");
+		GLEN_CRITICAL({e.what()});
 	}
 
 	const char* vShaderCode{ vertexCode.c_str() };
 	const char* fShaderCode{ fragmentCode.c_str() };
 
 	// 2. compile the shaders
-	unsigned int vertex{ 0 };
-	unsigned int fragment{ 0 };
-	int success{ 0 };
+	GLuint vertex			{ 0 };
+	GLuint fragment			{ 0 };
+	GLint success			{ 0 };
 	char infoLog[GLlogSize];
 
 	// vertex shader

@@ -14,7 +14,7 @@ public:
 	Shader(const std::string& vertexPath, const std::string& fragmentPath);
 	~Shader();
 
-	unsigned int GetID() const noexcept { return ID; }
+	inline GLuint GetID() const noexcept { return ID; }
 	// use/activate the shader
 	void Bind();
 	void Unbind();
@@ -34,7 +34,7 @@ public:
 	void setMat4(const std::string& name, const glm::mat4& mat) const;
 
 private:
-	unsigned int  ID;
+	GLuint  ID;
 };
 
 } // namespace GLEN

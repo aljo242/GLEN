@@ -131,37 +131,14 @@ void Window::DoFrame()
 
 	stbi_set_flip_vertically_on_load(true);
 	std::filesystem::path path{ "res\\tex\\container.jpg" };
-
-
-	Texture tex1(path);
-
-
-	int width; int height; int nrChannels;
-	unsigned char* data;
-	unsigned int texture2{ 0 };
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // tex coord are s, t, r
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // map to:       x, y, z
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // tex coord are s, t, r
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // map to:       x, y, z
+	TextureDescriptor descriptor;
+	Texture tex1(path, descriptor);
 
 	stbi_set_flip_vertically_on_load(true);
-
 	path = "res\\tex\\awesomeface.png";
-	data = stbi_load(path.string().c_str(), &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		GLEN_CRITICAL("ERROR::TEXTURE::FAILED_LOAD");
-	}
-	stbi_image_free(data);
+	descriptor.format = GL_RGBA;
+	Texture tex2(path, descriptor);
+
 
 	// wireframe render
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -185,7 +162,7 @@ void Window::DoFrame()
 	glm::mat4 view{camera.GetViewMatrix()};
 
 	constexpr float radius{ 10.0f };
-	constexpr bool trackFPS {false};
+	constexpr bool trackFPS {true};
 
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
@@ -197,8 +174,8 @@ void Window::DoFrame()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float camX = std::sin(glfwGetTime()) * radius;
-		float camY = std::cos(.002 * glfwGetTime()) * radius;
+		const float camX {static_cast<float>(std::sin(glfwGetTime())) * radius};
+		const float camY {static_cast<float>(std::cos(.002 * glfwGetTime())) * radius};
 		//cameraPos = glm::vec3(camX, 0.0f, camY);
 		view = camera.GetViewMatrix();
 
@@ -217,7 +194,7 @@ void Window::DoFrame()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex1.GetID());
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		glBindTexture(GL_TEXTURE_2D, tex2.GetID());
 
 		vBuffer2.BindArray();
 		for (unsigned int i = 0; i < 10; i++)
@@ -260,8 +237,8 @@ void GLEN::Window::processMouse()
 
 	const float xOffset {static_cast<float>(xpos) - lastX};
 	const float yOffset {static_cast<float>(ypos) - lastY};
-	lastX = xpos;
-	lastY = ypos;
+	lastX = static_cast<float>(xpos);
+	lastY = static_cast<float>(ypos);
 	
 	constexpr GLboolean constrainPitch {true};
 	camera.ProcessMouseMovement(xOffset, yOffset, constrainPitch);

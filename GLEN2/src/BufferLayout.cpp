@@ -11,7 +11,7 @@ VertexBufferLayout::VertexBufferLayout(const std::vector<GLint> entrySizes__, co
 	:
 	entrySizes(entrySizes__),
 	type(type__),
-	totalEntries(std::accumulate(entrySizes__.begin(), entrySizes__.end(), 0ull)),
+	totalEntries(std::accumulate(entrySizes__.begin(), entrySizes__.end(), 0ul)),
 	dataSize(sizeof(GLfloat))
 {
 	if (type == GL_UNSIGNED_INT)

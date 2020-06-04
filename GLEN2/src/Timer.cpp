@@ -8,17 +8,19 @@
 
 using namespace GLEN;
 
+constexpr unsigned long  frameWindow {60};
+constexpr double   frameWindowDouble {60.0};
+
 void Timer::update(const bool trackFPS) noexcept
 {
-	const float currentTime {static_cast<float>(glfwGetTime())};
+	const double currentTime {glfwGetTime()};
 	deltaTime = currentTime - lastTime;
 	lastTime = currentTime;
 	
-	if (trackFPS && (( frameCount % 60) == 0)) // check every 60 frames
+	if (trackFPS && (( frameCount % frameWindow) == 0ul)) // check every 60 frames
 	{
-		fpsCounter = (currentTime - lastWindow) / static_cast<float>(frameCount);
+		fpsCounter = (currentTime - lastWindow) / frameWindowDouble;
 		lastWindow = currentTime;
-		frameCount = 0;
 		logFPS();
 	} 
 
@@ -27,5 +29,5 @@ void Timer::update(const bool trackFPS) noexcept
 
 void Timer::logFPS() const noexcept
 {
-	GLEN_CRITICAL("FPS: {}", 1.0f/(fpsCounter));
+	GLEN_CRITICAL("FPS: {}", 1.0/(fpsCounter));
 }
