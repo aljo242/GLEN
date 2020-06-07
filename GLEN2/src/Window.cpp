@@ -57,57 +57,58 @@ void Window::DoFrame()
 	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("shader\\vshader.glsl", "shader\\fshader.glsl");
+	Shader lightCube("shader\\lightSourceV.glsl", "shader\\lightSourceF.glsl");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 	
 	std::vector<GLfloat> vertices{
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f, 
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  0.0f, -1.0f, 
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  0.0f, -1.0f, 
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, -1.0f, 
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f, 
 
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
 
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
 
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f,
 
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, -1.0f,  0.0f,
 
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f
 	};
 	
 
 	// world space positions of our cubes
-	glm::vec3 cubePositions[] = {
+	std::vector<glm::vec3> cubePositions {
 		glm::vec3(0.0f,  0.0f,  0.0f),
 		glm::vec3(2.0f,  5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -120,14 +121,24 @@ void Window::DoFrame()
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	std::vector<GLint> bufferList {3, 2};
+	std::vector<GLint> bufferList {3, 2, 3};
 
+	// TODO encapsulate further
 	VertexBuffer<GLfloat> vBuffer2(bufferList, vertices);
 	vBuffer2.GenArrays(1);
 	vBuffer2.GenBuffers(1);
 	vBuffer2.Bind();
 	vBuffer2.BufferStatic();
-	vBuffer2.PushVert(0); vBuffer2.PushVert(1); 
+	vBuffer2.PushVert(0); vBuffer2.PushVert(1);  vBuffer2.PushVert(2);
+
+	// TODO add this functionality to VertexBuffer
+	GLuint lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, vBuffer2.GetVBO());
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0u);
 
 	stbi_set_flip_vertically_on_load(true);
 	std::filesystem::path path{ "res\\tex\\container.jpg" };
@@ -148,21 +159,20 @@ void Window::DoFrame()
 	ourShader.setInt("texture2", 1);
 
 	glm::mat4 model{ glm::mat4(1.0f) };
-	//model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	//glm::mat4 view{ glm::mat4(1.0f) };
 	glm::mat4 projection{ glm::perspective(glm::radians(70.0f), static_cast<float>(m_width / m_height), 0.1f, 100.0f) };
-
-	//glm::vec3 cameraPos						{ glm::vec3(0.0f, 0.0f, 3.0f) };
-	//constexpr glm::vec3 cameraTarget		{ glm::vec3(0.0f, 0.0f, 0.0f) };
-	//const glm::vec3 cameraDirection			{ glm::normalize(cameraPos - cameraTarget)};
-	//constexpr glm::vec3 up					{ glm::vec3(0.0f, 1.0f, 0.0f) };
-	//const glm::vec3 cameraRight				{ glm::normalize(glm::cross(up, cameraDirection)) };
-	//const glm::vec3 cameraUp				{ glm::cross(cameraDirection, cameraUp) };
-
 	glm::mat4 view{camera.GetViewMatrix()};
 
 	constexpr float radius{ 10.0f };
 	constexpr bool trackFPS {true};
+
+	const glm::vec3 lightColor(1.0f, 1.0f, 1.0f); // white light 
+	glm::vec3 toyColor(1.0f, 0.5f, 0.31f);
+	glm::vec3 result {lightColor * toyColor};
+
+	const glm::vec3 lightSourcePos(1.2f, 1.0f, 2.0f);
+
+
+
 
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
@@ -171,33 +181,41 @@ void Window::DoFrame()
 
 		processInput();
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		const float camX {static_cast<float>(std::sin(glfwGetTime())) * radius};
-		const float camY {static_cast<float>(std::cos(.002 * glfwGetTime())) * radius};
-		//cameraPos = glm::vec3(camX, 0.0f, camY);
+		const float camX {static_cast<float>(std::sin(glfwGetTime()))};
+		const float camY {static_cast<float>(std::cos(.002 * glfwGetTime()))};
+
+		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(m_width / m_height), 0.1f, 1000.0f);
 		view = camera.GetViewMatrix();
 
-		ourShader.Bind();
-		//view = glm::mat4(1.0f);
-		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(m_width / m_height), 0.1f, 100.0f);
+		size_t index {cubePositions.size() - 1};
+
+
 		// DRAW
-		ourShader.setMat4("view", view);
+		ourShader.Bind();
+
+
 		ourShader.setMat4("projection", projection);
+		ourShader.setMat4("view", view);
 		ourShader.setFloat("toggle", mixValue);
 
-		ourShader.setFloat("camX", camX);
-		ourShader.setFloat("camY", camY);
+		ourShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		ourShader.setVec3("lightPos", glm::vec3(1.2f, camX * radius, -10.0f));
+		ourShader.setVec3("viewPos", camera.GetPosition());
+
+		//ourShader.setFloat("camX", camX);
+		//ourShader.setFloat("camY", camY);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex1.GetID());
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, tex2.GetID());
-
 		vBuffer2.BindArray();
-		for (unsigned int i = 0; i < 10; i++)
+
+		for (unsigned int i = 0; i < cubePositions.size() - 1; i++)
 		{
 			// calculate the model matrix for each object and pass it to shader before drawing
 			model = glm::mat4(1.0f);
@@ -207,6 +225,25 @@ void Window::DoFrame()
 			ourShader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0,  36);
 		}
+
+
+
+		lightCube.Bind();
+		lightCube.setMat4("projection", projection);
+		lightCube.setMat4("view", view);
+
+		// calculate the model matrix for each object and pass it to shader before drawing
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(1.2f, camX * radius, -10.0f));
+		float angle{ 20.0f * index * static_cast<float>(glfwGetTime()) };
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			lightCube.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0,  36);
+		
+
+
+
+
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);

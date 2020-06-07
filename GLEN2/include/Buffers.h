@@ -48,6 +48,8 @@ public:
 	}
 
 	inline void BindArray() const {glBindVertexArray(VAO);}
+	inline GLuint GetVAO() const noexcept {return VAO;}
+	inline GLuint GetVBO() const noexcept {return VBO;}
 
 private:
 

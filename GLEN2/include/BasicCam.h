@@ -29,6 +29,7 @@ public:
 	BasicCam(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f));
 	inline void ToggleFPS(const bool state) {fps = state;}
 	glm::mat4 GetViewMatrix() const {return glm::lookAt(Position, Position + Front, Up);} 
+	inline glm::vec3 GetPosition() const noexcept {return Position;}
 
 	void ProcessKeyboard(CameraMovement direction, const float deltaTime);
 	void ProcessMouseMovement(const float xOffset, const float yOffset, const GLboolean constrainPitch = true);
