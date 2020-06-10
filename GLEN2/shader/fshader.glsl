@@ -1,41 +1,62 @@
+// TODO FIX
+
+
 #version 460 core
 
+// fragmentshader
+
+// material data container
+struct Material {
+	vec3 ambient;
+	vec3 diffuse;
+	sampler2D diffuseTex;
+	vec3 specular;
+	sampler2D specularTex;
+
+	float shininess;
+};
+
+struct Light {
+	vec3 position;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
 out vec4 FragColor;
+in vec3 FragPos;
+in vec2 TexCoord;
+in vec3 Normal;
 
-in  vec3 ourColor;
-in  vec3 Normal;
-in  vec3 FragPos;
-
-uniform sampler2D texture1;
-uniform sampler2D texture2;
 uniform float toggle;
 //uniform float camX;
 //uniform float camY;
 
-uniform vec3 objectColor;
-uniform vec3 lightColor;
-uniform vec3 lightPos;
 uniform vec3 viewPos;
+
+uniform Material material;
+uniform Light light;
 
 void main()
 {
-	// calc ambient lighting
-	float ambientStrength = 0.1;
-	vec3 ambient = ambientStrength * lightColor;
+		// calc ambient lighting
+	vec3 ambient = light.ambient * vec3(texture(material.diffuseTex, TexCoord));
 
 	// calc diffuse lighting
 	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(lightPos - FragPos);
+	vec3 lightDir = normalize(light.position - FragPos);
 	float diff = max(dot(norm,lightDir), 0.0);
-	vec3 diffuse = diff * lightColor;
+	vec3 diffuse = diff * light.diffuse * vec3(texture(material.diffuseTex, TexCoord));
+
+
 
 	// calc specular lighting
 	float specularStrength = 0.5;
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
-	float spec = specularStrength *pow(max(dot(viewDir, reflectDir), 0.0), 32);
-	vec3 specular = spec * lightColor;
+	float spec = specularStrength *pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+	vec3 specular = spec * light.specular * vec3(texture(material.specularTex, TexCoord));
 
 	vec3 phongLight = ambient + diffuse + specular;
-	FragColor = vec4(phongLight * objectColor, 1.0);
+	FragColor = vec4(phongLight, 1.0);
 }

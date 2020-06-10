@@ -62,6 +62,7 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
 	{
 		glGetShaderInfoLog(vertex, GLlogSize, NULL, infoLog);
 		GLEN_CRITICAL("ERROR::SHADER::VERTEX::COMPILATION_FAILED");
+		GLEN_CRITICAL(vertexPath.c_str());
 		GLEN_CRITICAL(infoLog);
 	}
 
@@ -75,6 +76,7 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
 	{
 		glGetShaderInfoLog(fragment, GLlogSize, NULL, infoLog);
 		GLEN_CRITICAL("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED");
+		GLEN_CRITICAL(fragmentPath.c_str());
 		GLEN_CRITICAL(infoLog);
 	}
 

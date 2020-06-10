@@ -31,6 +31,7 @@ public:
 	void GenBuffers(const GLsizei numBufs) 
 	{
 		glGenBuffers(numBufs, &VBO);
+        // ------
 		numVBOs = numBufs;
 	}
 	void GenArrays(const GLsizei numBufs) 

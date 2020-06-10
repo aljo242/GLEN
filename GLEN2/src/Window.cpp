@@ -23,7 +23,6 @@ Window::Window(const std::string name, const int width, const int height)
 	m_height{height},
 	camera{glm::vec3(0.0f, 0.0f, 3.0f)},
 	m_timer()
-
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -61,7 +60,6 @@ void Window::DoFrame()
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
-	
 	std::vector<GLfloat> vertices{
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f, 
@@ -77,12 +75,12 @@ void Window::DoFrame()
 	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
 
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f, 0.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1.0f, 0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f, 0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f, 0.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1.0f, 0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f, 0.0f,  0.0f,
 
 	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f,
 	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f,
@@ -106,7 +104,6 @@ void Window::DoFrame()
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f
 	};
 	
-
 	// world space positions of our cubes
 	std::vector<glm::vec3> cubePositions {
 		glm::vec3(0.0f,  0.0f,  0.0f),
@@ -121,7 +118,8 @@ void Window::DoFrame()
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	std::vector<GLint> bufferList {3, 2, 3};
+	using BufferList = std::vector<GLint>;
+	BufferList bufferList {3, 2, 3};
 
 	// TODO encapsulate further
 	VertexBuffer<GLfloat> vBuffer2(bufferList, vertices);
@@ -131,32 +129,37 @@ void Window::DoFrame()
 	vBuffer2.BufferStatic();
 	vBuffer2.PushVert(0); vBuffer2.PushVert(1);  vBuffer2.PushVert(2);
 
-	// TODO add this functionality to VertexBuffer
-	GLuint lightVAO;
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, vBuffer2.GetVBO());
+	VertexBuffer<GLfloat> vBufferLight(bufferList, vertices);
+	vBufferLight.GenArrays(1);
+	vBufferLight.GenBuffers(1);
+	vBufferLight.Bind();
+	vBufferLight.BufferStatic();
+	vBufferLight.PushVert(0);	vBufferLight.PushVert(1);	vBufferLight.PushVert(2);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0u);
 
 	stbi_set_flip_vertically_on_load(true);
 	std::filesystem::path path{ "res\\tex\\container.jpg" };
 	TextureDescriptor descriptor;
-	Texture tex1(path, descriptor);
+	Texture containerTex1(path, descriptor);
 
 	stbi_set_flip_vertically_on_load(true);
-	path = "res\\tex\\awesomeface.png";
+	path = "res\\tex\\container2.png";
 	descriptor.format = GL_RGBA;
-	Texture tex2(path, descriptor);
+	Texture containerTex2(path, descriptor);
+
+	stbi_set_flip_vertically_on_load(true);
+	path = "res\\tex\\container2_specular.png";
+	descriptor.format = GL_RGBA;
+	Texture containerTex2Specular(path, descriptor);
+
 
 
 	// wireframe render
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	ourShader.Bind();
-	ourShader.setInt("texture1", 0);
-	ourShader.setInt("texture2", 1);
+	ourShader.setInt("material.diffuseTex", 0);
+	ourShader.setInt("material.specularTex", 1);
 
 	glm::mat4 model{ glm::mat4(1.0f) };
 	glm::mat4 projection{ glm::perspective(glm::radians(70.0f), static_cast<float>(m_width / m_height), 0.1f, 100.0f) };
@@ -166,13 +169,11 @@ void Window::DoFrame()
 	constexpr bool trackFPS {true};
 
 	const glm::vec3 lightColor(1.0f, 1.0f, 1.0f); // white light 
-	glm::vec3 toyColor(1.0f, 0.5f, 0.31f);
-	glm::vec3 result {lightColor * toyColor};
-
 	const glm::vec3 lightSourcePos(1.2f, 1.0f, 2.0f);
+	const glm::vec3 lightPosition(glm::vec3(1.0f, 1.0f, -10.0f));
 
 
-
+	bool loaded {false};
 
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
@@ -189,64 +190,77 @@ void Window::DoFrame()
 
 		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(m_width / m_height), 0.1f, 1000.0f);
 		view = camera.GetViewMatrix();
-
-		size_t index {cubePositions.size() - 1};
-
+		const glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
 		// DRAW
 		ourShader.Bind();
 
-
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
+		ourShader.setVec3("viewPos", camera.GetPosition());
 		ourShader.setFloat("toggle", mixValue);
 
-		ourShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		ourShader.setVec3("lightPos", glm::vec3(1.2f, camX * radius, -10.0f));
-		ourShader.setVec3("viewPos", camera.GetPosition());
 
+		if (!loaded)
+		{
+			const glm::vec3 materialAmbient { glm::vec3(0.0f, 0.1f, 0.06f)};
+			const glm::vec3 materialDiffuse{ glm::vec3(0.0f, 0.50980392f, 0.50980392f) };
+			const glm::vec3 materialSpecular{ glm::vec3(0.50196078f, 0.50196078f, 0.50196078f) };
+
+			ourShader.setVec3("light.position", lightPosition);
+			ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+			ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); 
+			ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+			// load material system
+			ourShader.setVec3("material.ambient", materialAmbient);
+			ourShader.setInt("material.diffuse", 0);
+			ourShader.setInt("material.specular", 1);
+			ourShader.setFloat("material.shininess", 128.0f);
+		}
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, containerTex2.GetID());
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, containerTex2Specular.GetID());
+		vBuffer2.BindArray();
 		//ourShader.setFloat("camX", camX);
 		//ourShader.setFloat("camY", camY);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex1.GetID());
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex2.GetID());
-		vBuffer2.BindArray();
-
-		for (unsigned int i = 0; i < cubePositions.size() - 1; i++)
+		auto scale {1.0f};
+		for (const auto& pos : cubePositions)
 		{
 			// calculate the model matrix for each object and pass it to shader before drawing
 			model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			float angle{ 20.0f * i * static_cast<float>(glfwGetTime()) };
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			model = glm::translate(model, pos);
+			float angle{ 20.0f * scale * static_cast<float>(glfwGetTime()) };
+			//model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			ourShader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0,  36);
+			scale += 2.0f;
 		}
-
-
 
 		lightCube.Bind();
 		lightCube.setMat4("projection", projection);
 		lightCube.setMat4("view", view);
-
+		if (!loaded)
+		{
+			lightCube.setVec3("inColor", lightColor);
+			loaded = true;
+		}
 		// calculate the model matrix for each object and pass it to shader before drawing
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(1.2f, camX * radius, -10.0f));
-		float angle{ 20.0f * index * static_cast<float>(glfwGetTime()) };
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			lightCube.setMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0,  36);
-		
-
-
-
+		model = glm::translate(model, lightPosition);
+		float angle{ 20.0f * 0.5f * static_cast<float>(glfwGetTime()) };
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+		model = glm::scale(model, glm::vec3(0.2f));
+		lightCube.setMat4("model", model);
+		vBufferLight.BindArray();
+		glDrawArrays(GL_TRIANGLES, 0,  36);
 
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(this->window);
 		glfwPollEvents();
 	}
 
