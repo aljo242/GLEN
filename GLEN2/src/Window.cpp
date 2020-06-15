@@ -152,6 +152,11 @@ void Window::DoFrame()
 	descriptor.format = GL_RGBA;
 	Texture containerTex2Specular(path, descriptor);
 
+	stbi_set_flip_vertically_on_load(true);
+	path = "res\\tex\\matrix.jpg";
+	descriptor.format = GL_RGB;
+	Texture matrixTex(path, descriptor);
+
 
 
 	// wireframe render
@@ -160,6 +165,7 @@ void Window::DoFrame()
 	ourShader.Bind();
 	ourShader.setInt("material.diffuseTex", 0);
 	ourShader.setInt("material.specularTex", 1);
+	ourShader.setInt("material.emission", 2);
 
 	glm::mat4 model{ glm::mat4(1.0f) };
 	glm::mat4 projection{ glm::perspective(glm::radians(70.0f), static_cast<float>(m_width / m_height), 0.1f, 100.0f) };
@@ -223,6 +229,9 @@ void Window::DoFrame()
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, containerTex2Specular.GetID());
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, matrixTex.GetID());
 		vBuffer2.BindArray();
 		//ourShader.setFloat("camX", camX);
 		//ourShader.setFloat("camY", camY);

@@ -8,6 +8,7 @@
 // material data container
 struct Material {
 	vec3 ambient;
+	sampler2D emission;
 	vec3 diffuse;
 	sampler2D diffuseTex;
 	vec3 specular;
@@ -40,7 +41,7 @@ uniform Light light;
 void main()
 {
 		// calc ambient lighting
-	vec3 ambient = light.ambient * vec3(texture(material.diffuseTex, TexCoord));
+	vec3 ambient = light.ambient * .5 * (vec3(texture(material.diffuseTex, TexCoord)) + vec3(texture(material.emission, TexCoord)));
 
 	// calc diffuse lighting
 	vec3 norm = normalize(Normal);

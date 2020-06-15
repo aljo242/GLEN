@@ -5,6 +5,8 @@
 
 using namespace GLEN;
 
+//TODO have logging occur in DEBUG and RELEASE but not DIST
+
 int main()
 {
 	constexpr int width{ 1280 };
