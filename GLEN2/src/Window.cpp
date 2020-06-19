@@ -6,6 +6,7 @@
 #include "Buffers.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "PongGame.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -51,7 +52,7 @@ Window::Window(const std::string name, const int width, const int height)
 	}
 }
 
-void Window::DoFrame()
+void Window::Run()
 {
 	glEnable(GL_DEPTH_TEST);
 
@@ -106,16 +107,17 @@ void Window::DoFrame()
 	
 	// world space positions of our cubes
 	std::vector<glm::vec3> cubePositions {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
+		glm::vec3(-3.0f,  0.0f,  -5.0f),
+		glm::vec3(3.0f,  0.0f, -5.0f),
+		//glm::vec3(-1.5f, -2.2f, -2.5f),
+		//glm::vec3(-3.8f, -2.0f, -12.3f),
+		//glm::vec3(2.4f, -0.4f, -3.5f),
+		//glm::vec3(-1.7f,  3.0f, -7.5f),
+		//glm::vec3(1.3f, -2.0f, -2.5f),
+		//glm::vec3(1.5f,  2.0f, -2.5f),
+		//glm::vec3(1.5f,  0.2f, -1.5f),
+		//glm::vec3(-1.3f,  1.0f, -1.5f)
+		//glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 	using BufferList = std::vector<GLint>;
@@ -157,11 +159,6 @@ void Window::DoFrame()
 	descriptor.format = GL_RGB;
 	Texture matrixTex(path, descriptor);
 
-
-
-	// wireframe render
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	ourShader.Bind();
 	ourShader.setInt("material.diffuseTex", 0);
 	ourShader.setInt("material.specularTex", 1);
@@ -171,28 +168,37 @@ void Window::DoFrame()
 	glm::mat4 projection{ glm::perspective(glm::radians(70.0f), static_cast<float>(m_width / m_height), 0.1f, 100.0f) };
 	glm::mat4 view{camera.GetViewMatrix()};
 
-	constexpr float radius{ 10.0f };
-	constexpr bool trackFPS {true};
+	constexpr bool trackFPS {false};
 
-	const glm::vec3 lightColor(1.0f, 1.0f, 1.0f); // white light 
-	const glm::vec3 lightSourcePos(1.2f, 1.0f, 2.0f);
-	const glm::vec3 lightPosition(glm::vec3(1.0f, 1.0f, -10.0f));
-
+	const auto lightColor(glm::vec3(1.0f, 1.0f, 1.0f)); // white light 
+	//const glm::vec3 lightSourcePos(1.2f, 1.0f, 2.0f);
+	const auto lightPosition(glm::vec3(0.0f, 0.0f, -5.0f));
+	constexpr float depth {-5.0f};
 
 	bool loaded {false};
+	const auto paddleScale{ glm::vec3(0.25f, 1.5f, 0.25f) };
+
+	std::array<float,2> leftPaddlePos {cubePositions[0].x, cubePositions[0].y};
+	std::array<float,2> rightPaddlePos {cubePositions[1].x, cubePositions[1].y};
+	char level {1};
+	PongGame pongGame(leftPaddlePos, rightPaddlePos, level); 
 
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
 		m_timer.update(trackFPS);
 
-		processInput();
+		auto is = processInput();
+		pongGame.UpdateState(is.keyState);
+
+		auto ballPos = pongGame.ballPosition;
+		//GLEN_CRITICAL("BALL X: {} Y: {}", ballPos[0], ballPos[1]);
+		auto  leftPos = pongGame.leftPaddlePosition;
+		//GLEN_CRITICAL("PADDLE X: {} Y: {}", leftPos[0], leftPos[1]);
+		auto  rightPos = pongGame.rightPaddlePosition;
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		const float camX {static_cast<float>(std::sin(glfwGetTime()))};
-		const float camY {static_cast<float>(std::cos(.002 * glfwGetTime()))};
 
 		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(m_width / m_height), 0.1f, 1000.0f);
 		view = camera.GetViewMatrix();
@@ -206,14 +212,13 @@ void Window::DoFrame()
 		ourShader.setVec3("viewPos", camera.GetPosition());
 		ourShader.setFloat("toggle", mixValue);
 
-
 		if (!loaded)
 		{
-			const glm::vec3 materialAmbient { glm::vec3(0.0f, 0.1f, 0.06f)};
-			const glm::vec3 materialDiffuse{ glm::vec3(0.0f, 0.50980392f, 0.50980392f) };
-			const glm::vec3 materialSpecular{ glm::vec3(0.50196078f, 0.50196078f, 0.50196078f) };
+			const auto materialAmbient { glm::vec3(0.0f, 0.1f, 0.06f)};
+			const auto materialDiffuse{ glm::vec3(0.0f, 0.50980392f, 0.50980392f) };
+			const auto materialSpecular{ glm::vec3(0.50196078f, 0.50196078f, 0.50196078f) };
 
-			ourShader.setVec3("light.position", lightPosition);
+			ourShader.setVec3("light.position", glm::vec3(ballPos[0], ballPos[1], depth));
 			ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
 			ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); 
 			ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
@@ -233,20 +238,26 @@ void Window::DoFrame()
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, matrixTex.GetID());
 		vBuffer2.BindArray();
-		//ourShader.setFloat("camX", camX);
-		//ourShader.setFloat("camY", camY);
 
-		auto scale {1.0f};
-		for (const auto& pos : cubePositions)
+		// DRAW LEFT PADDLE
 		{
 			// calculate the model matrix for each object and pass it to shader before drawing
 			model = glm::mat4(1.0f);
-			model = glm::translate(model, pos);
-			float angle{ 20.0f * scale * static_cast<float>(glfwGetTime()) };
-			//model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			model = glm::translate(model, glm::vec3(leftPos[0], leftPos[1], depth));
+			model = glm::scale(model, paddleScale);
+			auto angle{ 20.0f  * static_cast<float>(glfwGetTime()) };
 			ourShader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0,  36);
-			scale += 2.0f;
+		}
+		// DRAW RIGHT PADDLE
+		{
+			// calculate the model matrix for each object and pass it to shader before drawing
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(rightPos[0], rightPos[1], depth));
+			model = glm::scale(model, paddleScale);
+			auto angle{ 20.0f * static_cast<float>(glfwGetTime()) };
+			ourShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		lightCube.Bind();
@@ -259,15 +270,13 @@ void Window::DoFrame()
 		}
 		// calculate the model matrix for each object and pass it to shader before drawing
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPosition);
-		float angle{ 20.0f * 0.5f * static_cast<float>(glfwGetTime()) };
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-		model = glm::scale(model, glm::vec3(0.2f));
+		model = glm::translate(model, glm::vec3(ballPos[0], ballPos[1], depth));
+		float angle{ 10.0f * static_cast<float>(glfwGetTime()) };
+		model = glm::rotate(model, 100.0f * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+		model = glm::scale(model, glm::vec3(0.1f));
 		lightCube.setMat4("model", model);
 		vBufferLight.BindArray();
 		glDrawArrays(GL_TRIANGLES, 0,  36);
-
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(this->window);
 		glfwPollEvents();
@@ -278,19 +287,25 @@ void Window::DoFrame()
 	//glDeleteBuffers(1, EBOs.data());
 }
 
-void Window::processInput()
+InputState Window::processInput()
 {
-
 	// probe for keys
-	processKeys();
+	auto ks = processKeys();
 
 	// get cursor pos
-	processMouse();
+	auto ms = processMouse();
+	camera.Reset();
+
+	InputState is;
+	is.keyState   =		ks;
+	is.mouseState =		ms;
+	return is;
 }
 
 
-void GLEN::Window::processMouse()
+MouseState GLEN::Window::processMouse()
 {
+	MouseState ms = MouseState::None;
 	double xpos{0.0};
 	double ypos{0.0};
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -302,33 +317,38 @@ void GLEN::Window::processMouse()
 	
 	constexpr GLboolean constrainPitch {true};
 	camera.ProcessMouseMovement(xOffset, yOffset, constrainPitch);
+	return ms;
 }
 
-void GLEN::Window::processKeys()
+KeyState GLEN::Window::processKeys()
 {
+	KeyState ks = KeyState::None;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+		ks = KeyState::Escape;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		camera.ProcessKeyboard(CameraMovement::FORWARD, m_timer.getDelta());
+		ks = KeyState::W;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 		camera.ProcessKeyboard(CameraMovement::BACKWARD, m_timer.getDelta());
-
+		ks = KeyState::S;
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
 		camera.ProcessKeyboard(CameraMovement::LEFT, m_timer.getDelta());
-
+		ks = KeyState::A;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		camera.ProcessKeyboard(CameraMovement::RIGHT, m_timer.getDelta());
+		ks = KeyState::D;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -347,9 +367,16 @@ void GLEN::Window::processKeys()
 			mixValue = 0.0f;
 		}
 	}
+	return ks;
 }
 
 void GLEN::frame_buffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
+}
+
+
+glm::vec3 UpdateBallPosition()
+{
+	return glm::vec3(0.0f, 0.0f, 0.0f);
 }

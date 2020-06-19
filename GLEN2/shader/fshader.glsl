@@ -24,6 +24,13 @@ struct Light {
 	vec3 specular;
 };
 
+struct DirectionalLight {
+	vec3 direction;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
 out vec4 FragColor;
 in vec3 FragPos;
 in vec2 TexCoord;
@@ -41,7 +48,7 @@ uniform Light light;
 void main()
 {
 		// calc ambient lighting
-	vec3 ambient = light.ambient * .5 * (vec3(texture(material.diffuseTex, TexCoord)) + vec3(texture(material.emission, TexCoord)));
+	vec3 ambient = light.ambient * vec3(texture(material.diffuseTex, TexCoord));
 
 	// calc diffuse lighting
 	vec3 norm = normalize(Normal);

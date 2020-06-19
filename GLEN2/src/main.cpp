@@ -18,7 +18,7 @@ int main()
 
 	Window myWindow("Learn OpenGL", width, height);
 
-	myWindow.DoFrame();
+	myWindow.Run();
 
 	glfwTerminate();
 	return 0;

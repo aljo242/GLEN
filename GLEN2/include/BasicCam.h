@@ -34,6 +34,7 @@ public:
 	void ProcessKeyboard(CameraMovement direction, const float deltaTime);
 	void ProcessMouseMovement(const float xOffset, const float yOffset, const GLboolean constrainPitch = true);
 	void ProcessMouseScroll(const float yOffset);
+	void Reset();
 
 private:
 	void updateCameraVectors();

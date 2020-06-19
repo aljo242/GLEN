@@ -29,7 +29,6 @@ void BasicCam::updateCameraVectors()
 	Front = glm::normalize(front);
 	Right = glm::normalize(glm::cross(Front, WorldUp));
 	Up	  = glm::normalize(glm::cross(Right, Front));
-
 }
 
 
@@ -89,4 +88,12 @@ void GLEN::BasicCam::ProcessMouseScroll(const float yOffset)
 		Zoom = 45.0f;
 	}
 }	
+
+void GLEN::BasicCam::Reset()
+{
+	Position = glm::vec3(0.0f, 0.0f, 3.0f);
+	Front    = glm::vec3(0.0f, 0.0f, -1.0f);
+	Right = glm::normalize(glm::cross(Front, WorldUp));
+	Up = glm::normalize(glm::cross(Right, Front));
+}
 

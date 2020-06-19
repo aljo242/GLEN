@@ -10,7 +10,16 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "KeyState.h"
+#include "MouseState.h"
+
 namespace GLEN{
+
+struct InputState
+{
+	KeyState	keyState;
+	MouseState	mouseState;
+};
 
 void frame_buffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -18,15 +27,15 @@ class Window
 {
 public:
 	Window(const std::string name, const int width, const int height);
-	void DoFrame();
+	void Run();
 	BasicCam camera;
 	Timer m_timer;
 
 private:
 	GLFWwindow* window;
-	void processInput();
-	void processMouse();
-	void processKeys();
+	InputState processInput();
+	MouseState processMouse();
+	KeyState processKeys();
 
 	std::string m_name;
 	int m_width;
