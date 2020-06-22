@@ -28,6 +28,7 @@ void GLEN::PongGame::ResetBall()
 	ballVelocity = std::array<float, 2>{.0075f, yInit / 60.0f};
 }
 
+
 void GLEN::PongGame::UpdateState(KeyState ks)
 {
 	// 1. Update Player Paddle
